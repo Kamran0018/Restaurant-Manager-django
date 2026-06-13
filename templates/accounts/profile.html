@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<section class="profile-header">
+    <div class="container text-center">
+        {% if user.profile_picture and user.profile_picture.name != 'profile_pics/default.png' %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="profile-avatar mb-3">
+        {% else %}
+            <div class="profile-avatar-placeholder mx-auto mb-3">
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            </div>
+        {% endif %}
+        <h2 style="font-family: var(--font-display);">{{ user.get_full_name|default:user.username }}</h2>
+        <p class="text-muted">{{ user.email }}</p>
+        <span class="food-badge featured">{{ user.get_role_display }}</span>
+    </div>
+</section>
+
+<!-- Profile Form -->
+<section class="content-section" style="margin-top: -2rem;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="auth-card" style="max-width: none;">
+                    <h4 class="mb-4">
+                        <i class="bi bi-person-gear text-gradient me-2"></i>
+                        Edit Profile
+                    </h4>
+
+                    <form method="post" action="{% url 'accounts:profile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger glass-alert py-2 px-3 mb-3" style="font-size: 0.85rem;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                Please correct the errors below.
+                            </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Address</label>
+                                {{ form.address }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">City</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">State</label>
+                                {{ form.state }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ZIP Code</label>
+                                {{ form.zip_code }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Profile Picture</label>
+                                {{ form.profile_picture }}
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-gradient-primary px-4">
+                                <i class="bi bi-check-lg me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

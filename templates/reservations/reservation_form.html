@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book a Table{% endblock %}
+
+{% block content %}
+<section class="reservation-section py-5">
+    <div class="container" style="margin-top: 80px;">
+        <div class="row g-5">
+            <!-- Left Info Panel -->
+            <div class="col-lg-5 animate-fade-up">
+                <div class="glass-card p-4 p-md-5 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="text-primary fw-bold text-uppercase tracking-wider small">Fine Dining Experience</span>
+                        <h1 class="font-heading text-gradient mt-2 mb-4">Reserve Your Table</h1>
+                        <p class="text-muted mb-4">
+                            Secure your table for a memorable dining experience at Restro.
+                            Whether it's a romantic date, a family gathering, or a business meeting, we have the perfect spot for you.
+                        </p>
+                        
+                        <div class="booking-features">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="bi bi-clock text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h5 class="h6 mb-1 text-color">Opening Hours</h5>
+                                    <p class="text-muted small mb-0">Monday - Sunday: 10:00 AM - 11:00 PM</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="bi bi-geo-alt text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h5 class="h6 mb-1 text-color">Gourmet Street Location</h5>
+                                    <p class="text-muted small mb-0">123 Gourmet Street, Foodville</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-shield-check text-primary fs-4 me-3"></i>
+                                <div>
+                                    <h5 class="h6 mb-1 text-color">Instant Booking Confirmation</h5>
+                                    <p class="text-muted small mb-0">Receive email notification as soon as we accept your request.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-secondary bg-opacity-25 rounded border border-secondary">
+                        <h6 class="text-primary small fw-bold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Important Policy:</h6>
+                        <p class="mb-0 text-muted small">Tables will be held for a maximum of 15 minutes past the reservation time. Please call us if you're running late.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Form Panel -->
+            <div class="col-lg-7 animate-fade-up" style="animation-delay: 0.1s;">
+                <div class="glass-card p-4 p-md-5">
+                    <h2 class="h4 mb-4"><i class="bi bi-calendar-check me-2 text-primary"></i>Reservation Details</h2>
+                    <form method="post" id="reservationForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- Date input -->
+                            <div class="col-md-6">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                                {{ form.date }}
+                                {% if form.date.errors %}
+                                    <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-muted small">Reservations can be made up to 30 days in advance.</div>
+                            </div>
+                            
+                            <!-- Time input -->
+                            <div class="col-md-6">
+                                <label for="{{ form.time.id_for_label }}" class="form-label">Time</label>
+                                {{ form.time }}
+                                {% if form.time.errors %}
+                                    <div class="text-danger small mt-1">{{ form.time.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text text-muted small">Hours: 10:00 AM - 10:00 PM.</div>
+                            </div>
+                            
+                            <!-- Guests input -->
+                            <div class="col-12">
+                                <label for="{{ form.number_of_guests.id_for_label }}" class="form-label">Number of Guests</label>
+                                {{ form.number_of_guests }}
+                                {% if form.number_of_guests.errors %}
+                                    <div class="text-danger small mt-1">{{ form.number_of_guests.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Special Request -->
+                            <div class="col-12">
+                                <label for="{{ form.special_request.id_for_label }}" class="form-label">Special Requests (Optional)</label>
+                                {{ form.special_request }}
+                                {% if form.special_request.errors %}
+                                    <div class="text-danger small mt-1">{{ form.special_request.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="mt-4 pt-2">
+                            <button type="submit" class="btn btn-gradient-primary w-100 py-3 rounded-pill">
+                                <i class="bi bi-journal-check me-2"></i>Book My Table
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

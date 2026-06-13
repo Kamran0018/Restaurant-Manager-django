@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="animate-fade-up"><i class="bi bi-bag me-2"></i>Shopping <span class="text-gradient">Cart</span></h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'menu:list' %}">Menu</a></li>
+                <li class="breadcrumb-item active">Cart</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Cart Content -->
+<section class="content-section">
+    <div class="container">
+        {% if cart_items %}
+        <div class="row g-4">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">{{ cart.item_count }} Item{{ cart.item_count|pluralize }} in Cart</h5>
+                    <form method="post" action="{% url 'cart:clear' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm" style="color: var(--accent);"
+                                onclick="return confirm('Are you sure you want to clear your cart?')">
+                            <i class="bi bi-trash me-1"></i>Clear Cart
+                        </button>
+                    </form>
+                </div>
+
+                <div class="cart-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cart_item in cart_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if cart_item.menu_item.image %}
+                                            <img src="{{ cart_item.menu_item.image.url }}"
+                                                 alt="{{ cart_item.menu_item.name }}"
+                                                 class="cart-item-img">
+                                        {% else %}
+                                            <div class="cart-item-img d-flex align-items-center justify-content-center"
+                                                 style="background: var(--gradient-primary); border-radius: 12px; color: white;">
+                                                <i class="bi bi-egg-fried"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'menu:detail' cart_item.menu_item.pk %}"
+                                               style="color: var(--text-primary); text-decoration: none; font-weight: 600;">
+                                                {{ cart_item.menu_item.name }}
+                                            </a>
+                                            <div class="small text-muted">{{ cart_item.menu_item.category.name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-500">₹{{ cart_item.menu_item.price }}</span>
+                                </td>
+                                <td>
+                                    <div class="quantity-control">
+                                        <form method="post" action="{% url 'cart:update' cart_item.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="decrease">
+                                            <button type="submit" class="btn">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                        </form>
+                                        <span class="qty-value">{{ cart_item.quantity }}</span>
+                                        <form method="post" action="{% url 'cart:update' cart_item.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="increase">
+                                            <button type="submit" class="btn">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold" style="color: var(--primary);">
+                                        ₹{{ cart_item.subtotal }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'cart:remove' cart_item.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm"
+                                                style="color: var(--accent);" title="Remove item">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="col-lg-4">
+                <div class="cart-summary" style="position: sticky; top: 100px;">
+                    <h5 class="mb-4">
+                        <i class="bi bi-receipt text-gradient me-2"></i>
+                        Order Summary
+                    </h5>
+
+                    <div class="cart-summary-row">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="fw-500">₹{{ cart.total_price }}</span>
+                    </div>
+                    <div class="cart-summary-row">
+                        <span class="text-muted">Delivery Fee</span>
+                        <span class="fw-500" style="color: #22c55e;">Free</span>
+                    </div>
+                    <div class="cart-summary-row">
+                        <span class="text-muted">Tax (5%)</span>
+                        <span class="fw-500">₹{{ cart.total_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="cart-summary-row cart-summary-total" style="border-top: 2px solid var(--glass-border); padding-top: 1rem;">
+                        <span>Total</span>
+                        <span class="text-gradient">₹{{ cart.total_price }}</span>
+                    </div>
+
+                    <a href="#" class="btn btn-gradient-primary w-100 py-3 mt-4">
+                        <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                    </a>
+
+                    <a href="{% url 'menu:list' %}" class="btn btn-outline-glow w-100 py-2 mt-2">
+                        <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty Cart -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-bag-x"></i>
+            </div>
+            <h3 style="font-family: var(--font-display);">Your Cart is Empty</h3>
+            <p>Looks like you haven't added any items to your cart yet.</p>
+            <a href="{% url 'menu:list' %}" class="btn btn-gradient-primary btn-lg px-5">
+                <i class="bi bi-grid me-2"></i>Browse Menu
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

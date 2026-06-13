@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Our Menu{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="animate-fade-up">Our <span class="text-gradient">Menu</span></h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                <li class="breadcrumb-item active">Menu</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Menu Content -->
+<section class="content-section">
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-container mb-4">
+            <form method="get" action="{% url 'menu:list' %}">
+                <div class="search-input-group d-flex">
+                    <input type="text" name="q" class="form-control"
+                           placeholder="Search for dishes..."
+                           value="{{ search_query }}">
+                    <button type="submit" class="btn">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="category-cards-grid mb-5">
+            <a href="{% url 'menu:list' %}"
+               class="category-card-item {% if not selected_category %}active{% endif %}">
+                <div class="category-card-img-wrapper">
+                    <div class="category-card-placeholder">
+                        <i class="bi bi-grid-fill"></i>
+                    </div>
+                </div>
+                <span class="category-card-name">
+                    All Items
+                </span>
+            </a>
+            {% for category in categories %}
+                <a href="{% url 'menu:list' %}?category={{ category.pk }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                   class="category-card-item {% if selected_category == category.pk|stringformat:'d' %}active{% endif %}">
+                    <div class="category-card-img-wrapper">
+                        {% if category.image %}
+                            <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy">
+                        {% else %}
+                            <div class="category-card-placeholder">
+                                <i class="bi bi-egg-fried"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <span class="category-card-name">
+                        {{ category.name }}
+                        <span class="category-card-count">({{ category.item_count }})</span>
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Sort Options -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <p class="text-muted mb-0">
+                <strong class="text-gradient">{{ items|length }}</strong> items found
+            </p>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="text-muted small">Sort by:</span>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'menu:list' %}?sort=newest{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="category-pill {% if sort_by == 'newest' %}active{% endif %}" style="padding: 0.35rem 1rem; font-size: 0.8rem;">
+                        Newest
+                    </a>
+                    <a href="{% url 'menu:list' %}?sort=price_low{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="category-pill {% if sort_by == 'price_low' %}active{% endif %}" style="padding: 0.35rem 1rem; font-size: 0.8rem;">
+                        Price ↑
+                    </a>
+                    <a href="{% url 'menu:list' %}?sort=price_high{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="category-pill {% if sort_by == 'price_high' %}active{% endif %}" style="padding: 0.35rem 1rem; font-size: 0.8rem;">
+                        Price ↓
+                    </a>
+                    <a href="{% url 'menu:list' %}?sort=name{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="category-pill {% if sort_by == 'name' %}active{% endif %}" style="padding: 0.35rem 1rem; font-size: 0.8rem;">
+                        A-Z
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Food Items Grid -->
+        <div class="row g-4">
+            {% for item in items %}
+            <div class="col-lg-4 col-md-6 reveal-on-scroll">
+                <div class="food-card">
+                    <div class="food-card-img">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" loading="lazy">
+                        {% else %}
+                            <div class="food-card-placeholder">
+                                <i class="bi bi-egg-fried"></i>
+                            </div>
+                        {% endif %}
+                        <div class="food-card-badges">
+                            {% if item.is_vegetarian %}
+                                <span class="food-badge veg">Veg</span>
+                            {% endif %}
+                            {% if item.is_spicy %}
+                                <span class="food-badge spicy">🌶 Spicy</span>
+                            {% endif %}
+                            {% if item.is_featured %}
+                                <span class="food-badge featured">⭐ Featured</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="food-card-body">
+                        <span class="food-card-category">{{ item.category.name }}</span>
+                        <h3 class="food-card-title">
+                            <a href="{% url 'menu:detail' item.pk %}">{{ item.name }}</a>
+                        </h3>
+                        <p class="food-card-desc">{{ item.description|truncatechars:90 }}</p>
+                        <div class="food-card-meta">
+                            <span><i class="bi bi-clock"></i> {{ item.preparation_time }} min</span>
+                            {% if item.calories %}
+                                <span><i class="bi bi-fire"></i> {{ item.calories }} cal</span>
+                            {% endif %}
+                            {% if item.average_rating %}
+                                <span><i class="bi bi-star-fill" style="color: #fbbf24;"></i> {{ item.average_rating }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="food-card-footer">
+                            <span class="food-card-price">
+                                <span class="currency">₹</span>{{ item.price }}
+                            </span>
+                            {% if user.is_authenticated %}
+                                <form method="post" action="{% url 'cart:add' item.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-add-cart btn-add-cart-ajax"
+                                            data-url="{% url 'cart:add' item.pk %}"
+                                            title="Add to cart">
+                                        <i class="bi bi-bag-plus"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <a href="{% url 'accounts:login' %}" class="btn-add-cart" title="Login to order">
+                                    <i class="bi bi-bag-plus"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+                    <h3>No Dishes Found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                    <a href="{% url 'menu:list' %}" class="btn btn-gradient-primary">
+                        <i class="bi bi-arrow-left me-2"></i>View All
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

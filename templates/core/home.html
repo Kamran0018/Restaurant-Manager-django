@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 hero-content">
+                <div class="hero-badge animate-fade-up">
+                    <i class="bi bi-stars"></i>
+                    <span>Premium Dining Experience</span>
+                </div>
+
+                <h1 class="hero-title animate-fade-up delay-1">
+                    Savor Every<br>
+                    <span class="text-gradient">Moment</span> &amp;<br>
+                    Every Bite
+                </h1>
+
+                <p class="hero-description animate-fade-up delay-2">
+                    Discover a symphony of flavors crafted with passion. From farm-fresh
+                    ingredients to your table, every dish tells a story of culinary excellence.
+                </p>
+
+                <div class="d-flex gap-3 flex-wrap animate-fade-up delay-3">
+                    <a href="{% url 'menu:list' %}" class="btn btn-gradient-primary btn-lg px-4">
+                        <i class="bi bi-grid me-2"></i>Explore Menu
+                    </a>
+                    <a href="{% url 'core:about' %}" class="btn btn-outline-glow btn-lg px-4">
+                        <i class="bi bi-play-circle me-2"></i>Our Story
+                    </a>
+                </div>
+
+                <div class="hero-stats animate-fade-up delay-4">
+                    <div class="hero-stat">
+                        <div class="hero-stat-number counter" data-target="150">0</div>
+                        <div class="hero-stat-label">Menu Items</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number counter" data-target="50000">0</div>
+                        <div class="hero-stat-label">Happy Customers</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-number counter" data-target="15">0</div>
+                        <div class="hero-stat-label">Expert Chefs</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 hero-image-container animate-fade-right delay-2">
+                <div class="hero-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=700&fit=crop"
+                        alt="Delicious gourmet food" loading="lazy">
+
+                    <div class="hero-floating-card card-1">
+                        <div class="floating-icon bg-gradient-primary">
+                            <i class="bi bi-star-fill text-white"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="font-size: 0.9rem;">4.9 Rating</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">2k+ Reviews</div>
+                        </div>
+                    </div>
+
+                    <div class="hero-floating-card card-2">
+                        <div class="floating-icon" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="font-size: 0.9rem;">Free Delivery</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Orders over ₹500</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Dishes -->
+<section class="content-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <p class="section-subtitle reveal-on-scroll">Our Specialties</p>
+            <h2 class="section-title reveal-on-scroll">Featured <span class="text-gradient">Dishes</span></h2>
+            <p class="section-description reveal-on-scroll">
+                Handpicked favorites from our kitchen, crafted with the finest ingredients
+                and presented with love.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            {% for item in featured_items %}
+            <div class="col-lg-4 col-md-6 reveal-on-scroll">
+                <div class="food-card">
+                    <div class="food-card-img">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" loading="lazy">
+                        {% else %}
+                        <div class="food-card-placeholder">
+                            <i class="bi bi-egg-fried"></i>
+                        </div>
+                        {% endif %}
+                        <div class="food-card-badges">
+                            {% if item.is_vegetarian %}
+                            <span class="food-badge veg">Veg</span>
+                            {% endif %}
+                            {% if item.is_spicy %}
+                            <span class="food-badge spicy">🌶 Spicy</span>
+                            {% endif %}
+                            {% if item.is_featured %}
+                            <span class="food-badge featured">⭐ Featured</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="food-card-body">
+                        <span class="food-card-category">{{ item.category.name }}</span>
+                        <h3 class="food-card-title">
+                            <a href="{% url 'menu:detail' item.pk %}">{{ item.name }}</a>
+                        </h3>
+                        <p class="food-card-desc">{{ item.description|truncatechars:80 }}</p>
+                        <div class="food-card-meta">
+                            <span><i class="bi bi-clock"></i> {{ item.preparation_time }} min</span>
+                            {% if item.calories %}
+                            <span><i class="bi bi-fire"></i> {{ item.calories }} cal</span>
+                            {% endif %}
+                        </div>
+                        <div class="food-card-footer">
+                            <span class="food-card-price">
+                                <span class="currency">₹</span>{{ item.price }}
+                            </span>
+                            {% if user.is_authenticated %}
+                            <form method="post" action="{% url 'cart:add' item.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-add-cart btn-add-cart-ajax"
+                                    data-url="{% url 'cart:add' item.pk %}" title="Add to cart">
+                                    <i class="bi bi-bag-plus"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <a href="{% url 'accounts:login' %}" class="btn-add-cart" title="Login to order">
+                                <i class="bi bi-bag-plus"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-egg-fried"></i></div>
+                    <h3>Menu Coming Soon</h3>
+                    <p>Our chefs are preparing something extraordinary. Stay tuned!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if featured_items %}
+        <div class="text-center mt-5 reveal-on-scroll">
+            <a href="{% url 'menu:list' %}" class="btn btn-outline-glow btn-lg px-5">
+                View Full Menu <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="content-section bg-surface">
+    <div class="container">
+        <div class="text-center mb-5">
+            <p class="section-subtitle reveal-on-scroll">Why Restro</p>
+            <h2 class="section-title reveal-on-scroll">Why Choose <span class="text-gradient">Us</span></h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6 reveal-on-scroll">
+                <div class="about-feature-card">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-egg-fried"></i>
+                    </div>
+                    <h5 class="mb-2">Fresh Ingredients</h5>
+                    <p class="text-muted small mb-0">Farm-to-table freshness in every dish we serve.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 reveal-on-scroll">
+                <div class="about-feature-card">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                    <h5 class="mb-2">Fast Delivery</h5>
+                    <p class="text-muted small mb-0">Hot meals delivered to your door in 30 minutes.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 reveal-on-scroll">
+                <div class="about-feature-card">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h5 class="mb-2">Award Winning</h5>
+                    <p class="text-muted small mb-0">Recognized for culinary excellence worldwide.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 reveal-on-scroll">
+                <div class="about-feature-card">
+                    <div class="about-feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="mb-2">100% Hygienic</h5>
+                    <p class="text-muted small mb-0">Strict food safety standards you can trust.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="content-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <p class="section-subtitle reveal-on-scroll">Testimonials</p>
+            <h2 class="section-title reveal-on-scroll">What Our <span class="text-gradient">Customers</span> Say</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 reveal-on-scroll">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">"</div>
+                    <div class="star-rating mb-2">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        The food quality is exceptional! Every dish feels like it's been prepared with such care and
+                        attention. Absolutely love the ambiance too.
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">I</div>
+                        <div>
+                            <div class="testimonial-name">Inam</div>
+                            <div class="testimonial-role">Food Lover</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal-on-scroll">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">"</div>
+                    <div class="star-rating mb-2">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                            class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        Best online food ordering experience. The delivery was super fast and the food arrived hot.
+                        Their Butter Chicken is to die for!
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">Z</div>
+                        <div>
+                            <div class="testimonial-name">Zeeshan </div>
+                            <div class="testimonial-role">Food Enthusiast</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal-on-scroll">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">"</div>
+                    <div class="star-rating mb-2">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                            class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        The reservation system is seamless and the restaurant team always goes above and beyond. Perfect
+                        for special occasions!
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">A</div>
+                        <div>
+                            <div class="testimonial-name">Aryan</div>
+                            <div class="testimonial-role">Verified Customer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container text-center position-relative" style="z-index: 2;">
+        <h2 class="reveal-on-scroll">Ready to Reserve Your <span style="font-style: italic;">Table?</span></h2>
+        <p class="reveal-on-scroll">Book your dining experience now and let us create unforgettable memories for you.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap reveal-on-scroll">
+            <a href="{% url 'reservations:create' %}" class="btn btn-white btn-lg px-4">
+                <i class="bi bi-calendar-check me-2"></i>Reserve a Table
+            </a>
+            <a href="{% url 'menu:list' %}" class="btn btn-lg px-4"
+                style="background: rgba(255,255,255,0.15); color: white; border-radius: var(--btn-radius);">
+                <i class="bi bi-grid me-2"></i>Order Online
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

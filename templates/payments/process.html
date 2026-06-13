@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pay for Order #{{ order.pk }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Card Flip & Design */
+    .card-container {
+        perspective: 1000px;
+        width: 100%;
+        max-width: 350px;
+        margin: 0 auto 2rem;
+    }
+    
+    .credit-card {
+        width: 100%;
+        height: 200px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s ease;
+        border-radius: 15px;
+        cursor: pointer;
+    }
+    
+    .credit-card.flipped {
+        transform: rotateY(180deg);
+    }
+    
+    .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #1f1f2e 0%, #0d0d13 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    
+    .card-back {
+        transform: rotateY(180deg);
+        background: linear-gradient(135deg, #0d0d13 0%, #1f1f2e 100%);
+    }
+    
+    .card-chip {
+        width: 40px;
+        height: 30px;
+        background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+        border-radius: 5px;
+    }
+    
+    .card-number-display {
+        font-family: 'Outfit', monospace;
+        font-size: 1.25rem;
+        letter-spacing: 2px;
+        color: #fff;
+        margin: 1.5rem 0 0.5rem;
+    }
+    
+    .card-holder-display {
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .card-expiry-display {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.7);
+        text-align: right;
+    }
+    
+    .card-magnetic-strip {
+        width: 100%;
+        height: 40px;
+        background: #000;
+        position: absolute;
+        top: 25px;
+        left: 0;
+    }
+    
+    .card-signature-cvv {
+        margin-top: 80px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-signature {
+        width: 70%;
+        height: 30px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 3px;
+    }
+    
+    .card-cvv-display {
+        background: #fff;
+        color: #000;
+        padding: 2px 8px;
+        font-weight: bold;
+        border-radius: 3px;
+    }
+    
+    /* Loading overlay */
+    #paymentSpinnerOverlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="payment-process-section py-5">
+    <div class="container" style="margin-top: 80px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="glass-card p-4 p-md-5 animate-fade-up">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-lock text-primary fs-1 mb-2"></i>
+                        <h2 class="font-heading h3 text-gradient">Secure Payment Gateway</h2>
+                        <p class="text-muted">You are paying for Order #{{ order.pk }}</p>
+                    </div>
+                    
+                    <!-- Order Quick Summary -->
+                    <div class="p-3 bg-secondary bg-opacity-25 rounded border border-secondary mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Amount to Pay</span>
+                            <span class="h5 mb-0 text-gradient fw-bold">Rs. {{ order.total_amount }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Method Chosen</span>
+                            <span class="small badge bg-secondary text-capitalize">{{ payment.payment_method }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Form block -->
+                    <form method="post" id="paymentForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" id="paymentAction" value="success">
+                        
+                        <!-- Credit Card Section -->
+                        {% if payment.payment_method == 'card' %}
+                            <div class="card-container">
+                                <div class="credit-card" id="creditCard">
+                                    <div class="card-front">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="card-chip"></div>
+                                            <i class="bi bi-credit-card-2-front text-white fs-3"></i>
+                                        </div>
+                                        <div class="card-number-display" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+                                        <div class="d-flex justify-content-between align-items-end">
+                                            <div>
+                                                <div class="small text-muted" style="font-size: 0.6rem;">CARDHOLDER</div>
+                                                <div class="card-holder-display" id="cardHolderDisplay">YOUR NAME</div>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted" style="font-size: 0.6rem; text-align: right;">EXPIRES</div>
+                                                <div class="card-expiry-display" id="cardExpiryDisplay">MM/YY</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-back">
+                                        <div class="card-magnetic-strip"></div>
+                                        <div class="card-signature-cvv">
+                                            <div class="card-signature"></div>
+                                            <div>
+                                                <div class="small text-muted text-end" style="font-size: 0.6rem;">CVV</div>
+                                                <div class="card-cvv-display" id="cardCvvDisplay">•••</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label small">Card Number</label>
+                                    <input type="text" class="form-control" placeholder="1234 5678 1234 5678" id="cardNumInput" required maxlength="19">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small">Cardholder Name</label>
+                                    <input type="text" class="form-control text-uppercase" placeholder="John Doe" id="cardHolderInput" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">Expiry Date</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY" id="cardExpiryInput" required maxlength="5">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small">CVV</label>
+                                    <input type="password" class="form-control" placeholder="123" id="cardCvvInput" required maxlength="3">
+                                </div>
+                            </div>
+                            
+                        <!-- UPI Section -->
+                        {% elif payment.payment_method == 'upi' %}
+                            <div class="text-center py-3 mb-4">
+                                <i class="bi bi-qr-code-scan text-muted" style="font-size: 4rem;"></i>
+                                <p class="text-muted small mt-2">Enter your UPI ID below to receive a payment request.</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label small">UPI ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-secondary border-secondary text-muted">@</span>
+                                    <input type="text" class="form-control" placeholder="username@ybl" required>
+                                </div>
+                                <div class="form-text text-muted small">Example: success@upi (to simulate success) or fail@upi</div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Actions -->
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-6">
+                                <button type="button" onclick="startSimulatedPayment('success')" class="btn btn-gradient-primary w-100 py-3 rounded-pill">
+                                    <i class="bi bi-check-circle-fill me-2"></i>Pay Successfully
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" onclick="startSimulatedPayment('failure')" class="btn btn-outline-danger w-100 py-3 rounded-pill">
+                                    <i class="bi bi-x-circle-fill me-2"></i>Simulate Failure
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Payment Processing Overlay -->
+<div id="paymentSpinnerOverlay">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3.5rem; height: 3.5rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h3 class="h4 font-heading text-gradient mb-2" id="spinnerHeading">Processing Payment</h3>
+    <p class="text-muted small" id="spinnerSubtext">Please do not refresh the page or click back.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Credit card interactive styling and flip logic
+    const creditCard = document.getElementById('creditCard');
+    const cardNumInput = document.getElementById('cardNumInput');
+    const cardHolderInput = document.getElementById('cardHolderInput');
+    const cardExpiryInput = document.getElementById('cardExpiryInput');
+    const cardCvvInput = document.getElementById('cardCvvInput');
+    
+    if (creditCard) {
+        // Inputs to front/back card displays
+        cardNumInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = value.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+
+            for (let i=0, len=match.length; i<len; i+=4) {
+                parts.push(match.substring(i, i+4));
+            }
+
+            if (parts.length > 0) {
+                e.target.value = parts.join(' ');
+            } else {
+                e.target.value = value;
+            }
+            
+            document.getElementById('cardNumberDisplay').innerText = e.target.value || '•••• •••• •••• ••••';
+        });
+        
+        cardHolderInput.addEventListener('input', function(e) {
+            document.getElementById('cardHolderDisplay').innerText = e.target.value.toUpperCase() || 'YOUR NAME';
+        });
+        
+        cardExpiryInput.addEventListener('input', function(e) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 2) {
+                val = val.substring(0, 2) + '/' + val.substring(2, 4);
+            }
+            e.target.value = val;
+            document.getElementById('cardExpiryDisplay').innerText = e.target.value || 'MM/YY';
+        });
+        
+        cardCvvInput.addEventListener('focus', function() {
+            creditCard.classList.add('flipped');
+        });
+        
+        cardCvvInput.addEventListener('blur', function() {
+            creditCard.classList.remove('flipped');
+        });
+        
+        cardCvvInput.addEventListener('input', function(e) {
+            document.getElementById('cardCvvDisplay').innerText = e.target.value || '•••';
+        });
+    }
+
+    // Payment simulation animation
+    function startSimulatedPayment(result) {
+        // Validate card fields manually if they are visible
+        const form = document.getElementById('paymentForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        // Setup overlay details
+        document.getElementById('paymentAction').value = result;
+        const overlay = document.getElementById('paymentSpinnerOverlay');
+        const heading = document.getElementById('spinnerHeading');
+        const subtext = document.getElementById('spinnerSubtext');
+        
+        overlay.style.display = 'flex';
+        
+        // Simulation steps
+        setTimeout(() => {
+            heading.innerText = "Securing transaction...";
+            subtext.innerText = "Verifying with your card issuer...";
+        }, 1000);
+        
+        setTimeout(() => {
+            heading.innerText = result === 'success' ? "Payment approved!" : "Transaction declined!";
+            subtext.innerText = result === 'success' ? "Finalizing your order..." : "Declined by bank. Please try again.";
+        }, 2200);
+        
+        setTimeout(() => {
+            form.submit();
+        }, 3000);
+    }
+</script>
+{% endblock %}

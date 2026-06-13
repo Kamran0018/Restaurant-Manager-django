@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<section class="checkout-section py-5">
+    <div class="container" style="margin-top: 80px;">
+        <h1 class="mb-4 text-gradient animate-fade-up">Checkout</h1>
+        
+        <div class="row g-5">
+            <!-- Delivery Details Form -->
+            <div class="col-lg-7 animate-fade-up" style="animation-delay: 0.1s;">
+                <div class="glass-card p-4">
+                    <h3 class="h4 mb-4"><i class="bi bi-truck me-2 text-primary"></i>Delivery Details</h3>
+                    <form method="post" id="checkoutForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">Delivery Address</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <div class="text-danger small">{{ form.address.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">{{ form.city.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.state.id_for_label }}" class="form-label">State</label>
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <div class="text-danger small">{{ form.state.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.zip_code.id_for_label }}" class="form-label">ZIP Code</label>
+                                {{ form.zip_code }}
+                                {% if form.zip_code.errors %}
+                                    <div class="text-danger small">{{ form.zip_code.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="{{ form.special_instructions.id_for_label }}" class="form-label">Special Instructions (Optional)</label>
+                                {{ form.special_instructions }}
+                                {% if form.special_instructions.errors %}
+                                    <div class="text-danger small">{{ form.special_instructions.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Order Summary Sidebar -->
+            <div class="col-lg-5 animate-fade-up" style="animation-delay: 0.2s;">
+                <div class="glass-card p-4 sticky-top" style="top: 100px; z-index: 10;">
+                    <h3 class="h4 mb-4"><i class="bi bi-receipt me-2 text-primary"></i>Order Summary</h3>
+                    
+                    <div class="checkout-items-list mb-4" style="max-height: 250px; overflow-y: auto;">
+                        {% for item in cart_items %}
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-3">
+                            <div class="d-flex align-items-center">
+                                {% if item.menu_item.image %}
+                                    <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                        <i class="bi bi-egg-fried"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0 text-truncate" style="max-width: 180px;">{{ item.menu_item.name }}</h6>
+                                    <small class="text-muted">{{ item.quantity }} x Rs. {{ item.menu_item.price }}</small>
+                                </div>
+                            </div>
+                            <span class="fw-bold">Rs. {{ item.subtotal }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Pricing breakdown -->
+                    <div class="pricing-breakdown mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal</span>
+                            <span>Rs. {{ subtotal }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">GST & Restaurant Charges (5%)</span>
+                            <span>Rs. {{ tax }}</span>
+                        </div>
+                        <hr class="border-secondary">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="h5 mb-0">Total</span>
+                            <span class="h5 mb-0 text-gradient font-heading fw-bold">Rs. {{ total }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method Selection -->
+                    <div class="payment-method-section mb-4">
+                        <h4 class="h6 mb-3"><i class="bi bi-wallet2 me-2 text-primary"></i>Select Payment Method</h4>
+                        <div class="payment-choices">
+                            {% for radio in form.payment_method %}
+                            <div class="form-check custom-payment-check p-3 mb-2 rounded glass-card border border-secondary d-flex align-items-center">
+                                <div class="me-2">
+                                    {{ radio.tag }}
+                                </div>
+                                <label class="form-check-label w-100 cursor-pointer" for="{{ radio.id_for_label }}">
+                                    {% if radio.choice_value == 'cash' %}
+                                        <i class="bi bi-cash-stack me-2 text-success"></i> Cash on Delivery
+                                    {% elif radio.choice_value == 'card' %}
+                                        <i class="bi bi-credit-card me-2 text-info"></i> Credit / Debit Card
+                                    {% elif radio.choice_value == 'upi' %}
+                                        <i class="bi bi-phone me-2 text-warning"></i> UPI (PhonePe, GPay, Paytm)
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% if form.payment_method.errors %}
+                                <div class="text-danger small">{{ form.payment_method.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Place Order Button -->
+                    <button type="submit" form="checkoutForm" class="btn btn-gradient-primary w-100 py-3 rounded-pill">
+                        <i class="bi bi-shield-check me-2"></i> Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

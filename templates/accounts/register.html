@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-card animate-fade-up" style="max-width: 550px;">
+            <div class="text-center mb-4">
+                <h2 class="mb-1" style="font-family: var(--font-display);">Create <span class="text-gradient">Account</span></h2>
+                <p class="text-muted">Join Restro for the best dining experience</p>
+            </div>
+
+            <form method="post" action="{% url 'accounts:register' %}">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger glass-alert py-2 px-3 mb-3" style="font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Username</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Phone Number</label>
+                        {{ form.phone }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password</label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+
+                <div class="form-check mt-3 mb-4">
+                    <input type="checkbox" class="form-check-input" id="terms" required>
+                    <label class="form-check-label text-muted small" for="terms">
+                        I agree to the <a href="#" style="color: var(--primary);">Terms of Service</a>
+                        and <a href="#" style="color: var(--primary);">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-gradient-primary w-100 py-2 mb-3">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+
+                <div class="auth-divider">or</div>
+
+                <p class="text-center text-muted mb-0">
+                    Already have an account?
+                    <a href="{% url 'accounts:login' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                        Sign In
+                    </a>
+                </p>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

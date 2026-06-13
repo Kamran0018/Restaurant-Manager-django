@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reservation Details #{{ reservation.pk }}{% endblock %}
+
+{% block content %}
+<section class="reservation-detail-section py-5">
+    <div class="container" style="margin-top: 80px;">
+        <!-- Back Navigation -->
+        <a href="{% url 'reservations:list' %}" class="btn btn-link text-decoration-none mb-4 p-0">
+            <i class="bi bi-arrow-left me-2"></i>Back to Reservations
+        </a>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="glass-card p-4 p-md-5 animate-fade-up">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+                        <div>
+                            <span class="text-muted small">Reservation ID</span>
+                            <h2 class="h3 font-heading mb-0 text-gradient">#{{ reservation.pk }}</h2>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted small d-block">Booked on {{ reservation.created_at|date:"d M Y, h:i A" }}</span>
+                            <span class="badge rounded-pill px-3 py-2 mt-2 
+                                {% if reservation.reservation_status == 'pending' %}bg-warning text-dark
+                                {% elif reservation.reservation_status == 'confirmed' %}bg-success
+                                {% elif reservation.reservation_status == 'cancelled' %}bg-danger
+                                {% elif reservation.reservation_status == 'completed' %}bg-info text-dark
+                                {% else %}bg-secondary
+                                {% endif %}">
+                                {{ reservation.get_reservation_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-sm-4">
+                            <div class="p-3 bg-secondary bg-opacity-25 rounded border border-secondary text-center">
+                                <i class="bi bi-calendar3 text-primary fs-3 mb-2 d-block"></i>
+                                <span class="text-muted small d-block">Date</span>
+                                <span class="fw-bold">{{ reservation.date|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="p-3 bg-secondary bg-opacity-25 rounded border border-secondary text-center">
+                                <i class="bi bi-clock text-primary fs-3 mb-2 d-block"></i>
+                                <span class="text-muted small d-block">Time</span>
+                                <span class="fw-bold">{{ reservation.time|time:"h:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="p-3 bg-secondary bg-opacity-25 rounded border border-secondary text-center">
+                                <i class="bi bi-people text-primary fs-3 mb-2 d-block"></i>
+                                <span class="text-muted small d-block">Guests</span>
+                                <span class="fw-bold">{{ reservation.number_of_guests }} Guests</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if reservation.special_request %}
+                    <div class="mb-4 p-3 bg-secondary bg-opacity-25 rounded border border-secondary">
+                        <h5 class="h6 text-primary mb-2"><i class="bi bi-info-circle me-1"></i>Special Request Details:</h5>
+                        <p class="mb-0 text-muted" style="white-space: pre-line;">{{ reservation.special_request }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Policies Info -->
+                    <div class="mb-4 border-top border-secondary pt-4">
+                        <h5 class="h6 mb-3 text-color"><i class="bi bi-shield-exclamation text-primary me-2"></i>Reservation Policies</h5>
+                        <ul class="text-muted small ps-3">
+                            <li class="mb-1">We hold tables for 15 minutes. If you are delayed, please contact us.</li>
+                            <li class="mb-1">Cancellation is allowed up to 2 hours before the scheduled time.</li>
+                            <li>For groups larger than 20, please contact our restaurant management directly.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex flex-wrap gap-3 mt-4 pt-3 border-top border-secondary justify-content-between">
+                        <a href="{% url 'reservations:list' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-grid-fill me-2"></i>View All Reservations
+                        </a>
+                        {% if reservation.reservation_status == 'pending' or reservation.reservation_status == 'confirmed' %}
+                        <button type="button" class="btn btn-danger rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel Reservation
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cancel Reservation Confirmation Modal -->
+{% if reservation.reservation_status == 'pending' or reservation.reservation_status == 'confirmed' %}
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border border-secondary text-color">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title font-heading"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Cancel Reservation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your reservation for <strong>{{ reservation.number_of_guests }} guests</strong> on <strong>{{ reservation.date|date:"d M Y" }}</strong> at <strong>{{ reservation.time|time:"h:i A" }}</strong>?</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <a href="{% url 'reservations:cancel' reservation.pk %}" class="btn btn-danger rounded-pill px-4">Yes, Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

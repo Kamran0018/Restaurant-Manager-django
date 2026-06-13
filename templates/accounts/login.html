@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-card animate-fade-up">
+            <div class="text-center mb-4">
+                <h2 class="mb-1" style="font-family: var(--font-display);">Welcome <span class="text-gradient">Back</span></h2>
+                <p class="text-muted">Sign in to your account</p>
+            </div>
+
+            <form method="post" action="{% url 'accounts:login' %}">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger glass-alert py-2 px-3 mb-3" style="font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Invalid username or password. Please try again.
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_username">Username</label>
+                    {{ form.username }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="id_password">Password</label>
+                    {{ form.password }}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="remember">
+                        <label class="form-check-label text-muted small" for="remember">Remember me</label>
+                    </div>
+                    <a href="{% url 'accounts:password_reset' %}" class="small" style="color: var(--primary); text-decoration: none;">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <button type="submit" class="btn btn-gradient-primary w-100 py-2 mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+
+                <div class="auth-divider">or</div>
+
+                <p class="text-center text-muted mb-0">
+                    Don't have an account?
+                    <a href="{% url 'accounts:register' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                        Create one
+                    </a>
+                </p>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

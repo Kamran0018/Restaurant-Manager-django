@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.name }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header" style="padding-bottom: 2rem;">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'menu:list' %}">Menu</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'menu:list' %}?category={{ item.category.pk }}">{{ item.category.name }}</a></li>
+                <li class="breadcrumb-item active">{{ item.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Item Detail -->
+<section class="content-section" style="padding-top: 2rem;">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Image -->
+            <div class="col-lg-6 animate-fade-left">
+                <div class="detail-image">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <div class="food-card-placeholder" style="height: 400px; border-radius: 24px;">
+                            <i class="bi bi-egg-fried" style="font-size: 5rem;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="col-lg-6 animate-fade-right">
+                <div class="detail-info">
+                    <div class="d-flex gap-2 mb-3">
+                        <span class="food-badge featured">{{ item.category.name }}</span>
+                        {% if item.is_vegetarian %}
+                            <span class="food-badge veg">Vegetarian</span>
+                        {% endif %}
+                        {% if item.is_spicy %}
+                            <span class="food-badge spicy">🌶 Spicy</span>
+                        {% endif %}
+                    </div>
+
+                    <h1 style="font-family: var(--font-display); font-size: 2.2rem;">{{ item.name }}</h1>
+
+                    <div class="detail-price my-3">
+                        <span style="font-size: 1.2rem;">₹</span>{{ item.price }}
+                    </div>
+
+                    <p class="text-muted" style="font-size: 1.05rem; line-height: 1.8;">
+                        {{ item.description }}
+                    </p>
+
+                    <div class="detail-meta">
+                        <div class="detail-meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ item.preparation_time }} min prep time</span>
+                        </div>
+                        {% if item.calories %}
+                        <div class="detail-meta-item">
+                            <i class="bi bi-fire"></i>
+                            <span>{{ item.calories }} calories</span>
+                        </div>
+                        {% endif %}
+                        {% if item.average_rating %}
+                        <div class="detail-meta-item">
+                            <i class="bi bi-star-fill" style="color: #fbbf24;"></i>
+                            <span>{{ item.average_rating }} ({{ item.review_count }} reviews)</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'cart:add' item.pk %}" class="mt-4">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-gradient-primary btn-lg px-5">
+                                <i class="bi bi-bag-plus me-2"></i>Add to Cart
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-gradient-primary btn-lg px-5 mt-4">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login to Order
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Items -->
+        {% if related_items %}
+        <div class="mt-5 pt-5" style="border-top: 1px solid var(--glass-border);">
+            <h3 class="section-title text-center mb-4">You Might Also <span class="text-gradient">Like</span></h3>
+            <div class="row g-4">
+                {% for related in related_items %}
+                <div class="col-lg-3 col-md-6 reveal-on-scroll">
+                    <div class="food-card">
+                        <div class="food-card-img" style="height: 180px;">
+                            {% if related.image %}
+                                <img src="{{ related.image.url }}" alt="{{ related.name }}" loading="lazy">
+                            {% else %}
+                                <div class="food-card-placeholder"><i class="bi bi-egg-fried"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="food-card-body">
+                            <span class="food-card-category">{{ related.category.name }}</span>
+                            <h3 class="food-card-title" style="font-size: 1rem;">
+                                <a href="{% url 'menu:detail' related.pk %}">{{ related.name }}</a>
+                            </h3>
+                            <div class="food-card-footer">
+                                <span class="food-card-price" style="font-size: 1.1rem;">
+                                    <span class="currency">₹</span>{{ related.price }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
