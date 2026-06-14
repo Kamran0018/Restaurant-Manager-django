@@ -139,7 +139,7 @@
                         <span class="text-gradient">₹{{ cart.total_price }}</span>
                     </div>
 
-                    <a href="#" class="btn btn-gradient-primary w-100 py-3 mt-4">
+                    <a href="{% url 'orders:checkout' %}" class="btn btn-gradient-primary w-100 py-3 mt-4">
                         <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
                     </a>
 

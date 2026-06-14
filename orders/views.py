@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.http import HttpResponse
 from .models import Order, OrderItem
 from .forms import CheckoutForm
 from cart.models import Cart
 from payments.models import Payment
+from .receipt_generator import build_receipt_pdf
 
 
 @login_required
@@ -30,15 +32,11 @@ def checkout_view(request):
             messages.error(request, 'Please correct the errors below.')
     else:
         # Pre-fill form with user data
+        full_name = ' '.join(filter(None, [request.user.first_name, request.user.last_name])) or request.user.username
         form = CheckoutForm(initial={
-            'first_name': request.user.first_name,
-            'last_name': request.user.last_name,
+            'full_name': full_name,
             'email': request.user.email,
-            'phone': request.user.phone or '',
-            'address': request.user.address or '',
-            'city': request.user.city or '',
-            'state': request.user.state or '',
-            'zip_code': request.user.zip_code or '',
+            'phone': getattr(request.user, 'phone', '') or '',
         })
 
     subtotal = cart.total_price
@@ -63,11 +61,11 @@ def _place_order(request, cart, cart_items, form):
     tax = round(subtotal * 5 / 100, 2)
     total = subtotal + tax
 
-    # Build delivery address
+    # Build delivery address from structured fields
     delivery_address = (
-        f"{form.cleaned_data['address']}\n"
-        f"{form.cleaned_data['city']}, {form.cleaned_data['state']} "
-        f"{form.cleaned_data['zip_code']}"
+        f"{form.cleaned_data['house_number']}, {form.cleaned_data['street']}\n"
+        f"{form.cleaned_data['city']}, {form.cleaned_data['state']} - "
+        f"{form.cleaned_data['pincode']}"
     )
 
     # Create order
@@ -75,7 +73,7 @@ def _place_order(request, cart, cart_items, form):
         customer=request.user,
         total_amount=total,
         delivery_address=delivery_address,
-        special_instructions=form.cleaned_data.get('special_instructions', ''),
+        special_instructions=form.cleaned_data.get('order_notes', ''),
         order_status=Order.OrderStatus.PENDING,
         payment_status=Order.PaymentStatus.PENDING,
     )
@@ -185,3 +183,26 @@ def cancel_order_view(request, order_id):
         messages.warning(request, 'This order cannot be cancelled at this stage.')
 
     return redirect('orders:detail', order_id=order.pk)
+
+
+@login_required
+def download_receipt(request, order_id):
+    """Generate and stream a PDF receipt for the given order.
+
+    Only the order's owner may download their receipt.
+    The PDF is generated on-the-fly using ReportLab (no file saved to disk).
+    """
+    order = get_object_or_404(Order, pk=order_id, customer=request.user)
+
+    try:
+        pdf_bytes = build_receipt_pdf(order)
+    except Exception as exc:
+        messages.error(request, f'Could not generate receipt: {exc}')
+        return redirect('orders:detail', order_id=order.pk)
+
+    filename = f"receipt_RST{order.pk:04d}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Length'] = len(pdf_bytes)
+    return response

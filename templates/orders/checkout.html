@@ -3,168 +3,847 @@
 
 {% block title %}Checkout{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════════════════════════
+   CHECKOUT PAGE — fits the site's existing glass dark theme.
+   Only adds styles for layout, form visibility, and components.
+   ══════════════════════════════════════════════════════════════ */
+
+.checkout-page {
+  padding-top: 100px;
+  padding-bottom: 60px;
+  min-height: 100vh;
+}
+
+/* ── Breadcrumb ─────────────────────────────────────────── */
+.co-breadcrumb .breadcrumb-item a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.co-breadcrumb .breadcrumb-item a:hover { color: var(--primary); }
+
+/* ── Page heading ───────────────────────────────────────── */
+.co-page-title {
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.co-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+.co-subtitle .bi-lock-fill { color: #22c55e; }
+
+/* ── Progress stepper ───────────────────────────────────── */
+.co-stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.co-step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.co-step-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  transition: all .25s;
+}
+.co-step.done  .co-step-num,
+.co-step.active .co-step-num {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #fff;
+}
+.co-step.active .co-step-num {
+  box-shadow: 0 0 0 4px var(--primary-glow);
+}
+.co-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.co-step.done .co-step-label,
+.co-step.active .co-step-label { color: var(--text-primary); }
+.co-step-line {
+  flex: 1;
+  height: 2px;
+  background: var(--glass-border);
+  margin: 0 8px;
+  border-radius: 2px;
+}
+.co-step.done + .co-step-line {
+  background: var(--gradient-primary);
+}
+
+/* ── Section cards (reuse site's glass-card) ────────────── */
+.co-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--glass-shadow);
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  transition: border-color .2s;
+}
+.co-card:focus-within {
+  border-color: var(--primary-glow);
+}
+
+/* ── Section heading ────────────────────────────────────── */
+.co-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.co-section-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.co-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: .3px;
+  margin: 0;
+  text-transform: uppercase;
+}
+.co-section-optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+/* ── Form labels ────────────────────────────────────────── */
+.co-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: .3px;
+}
+
+/* ── Input icon wrapper ─────────────────────────────────── */
+.co-input-group { position: relative; }
+.co-input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 15px;
+  pointer-events: none;
+  z-index: 2;
+  line-height: 1;
+}
+.co-input-icon.top-aligned { top: 14px; transform: none; }
+.co-input-group:focus-within .co-input-icon { color: var(--primary); }
+
+/* ══════════════════════════════════════════════════════════
+   INPUTS — clearly visible in the site's dark theme
+   High-contrast border + light surface + bright text
+   ══════════════════════════════════════════════════════════ */
+.co-input {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px 0 40px;
+  /* Visible mid-tone surface — clearly different from card bg */
+  background: var(--surface-3) !important;
+  /* Solid, clearly visible border */
+  border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 10px !important;
+  /* Bright, readable text */
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+  font-weight: 400;
+  transition: border-color .2s, box-shadow .2s, background .2s !important;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.co-input::placeholder {
+  color: var(--text-muted) !important;
+}
+.co-input:focus {
+  background: var(--surface-3) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-glow) !important;
+  color: var(--text-primary) !important;
+}
+.co-input.is-invalid {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.18) !important;
+}
+textarea.co-input {
+  height: auto;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  resize: vertical;
+  min-height: 90px;
+}
+
+/* Light theme override — use normal white inputs when light mode on */
+[data-bs-theme="light"] .co-input {
+  background: #fff !important;
+  border-color: #ced4da !important;
+  color: #212529 !important;
+}
+[data-bs-theme="light"] .co-input::placeholder { color: #6c757d !important; }
+[data-bs-theme="light"] .co-input:focus {
+  border-color: var(--primary) !important;
+  background: #fff !important;
+  color: #212529 !important;
+}
+
+/* ── Error message ──────────────────────────────────────── */
+.co-error {
+  font-size: 12px;
+  color: #f87171;
+  margin-top: 4px;
+}
+
+/* ── Payment cards ──────────────────────────────────────── */
+.co-pay-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 11px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  user-select: none;
+}
+.co-pay-opt:last-child { margin-bottom: 0; }
+.co-pay-opt:hover {
+  border-color: var(--primary-glow);
+  background: rgba(255,111,0,.04);
+}
+.co-pay-opt.is-selected {
+  border-color: var(--primary);
+  background: rgba(255,111,0,.08);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.co-pay-opt input[type="radio"] { display: none; }
+
+.co-pay-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.co-pay-icon.cash { background: rgba(34,197,94,.12); color: #22c55e; }
+.co-pay-icon.card { background: rgba(59,130,246,.12); color: #60a5fa; }
+.co-pay-icon.upi  { background: rgba(234,179,8,.12);  color: #fbbf24; }
+
+.co-pay-info { flex: 1; }
+.co-pay-name { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+.co-pay-desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 1px; }
+
+.co-pay-radio {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--glass-border);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.co-pay-opt.is-selected .co-pay-radio {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.co-pay-radio::after {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  display: none;
+}
+.co-pay-opt.is-selected .co-pay-radio::after { display: block; }
+
+/* ── Order summary sidebar ──────────────────────────────── */
+.co-summary-wrap {
+  position: sticky;
+  top: 96px;
+}
+.co-summary-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+.co-summary-hdr {
+  background: var(--gradient-primary);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.co-summary-hdr-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0;
+  flex: 1;
+}
+.co-count-badge {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.co-summary-body { padding: 16px 20px; }
+
+/* Items */
+.co-items-list {
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+  margin-bottom: 4px;
+}
+.co-items-list::-webkit-scrollbar { width: 3px; }
+.co-items-list::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+.co-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.co-item-row:last-child { border-bottom: none; }
+.co-item-img {
+  width: 46px; height: 46px;
+  border-radius: 9px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.co-item-img-ph {
+  width: 46px; height: 46px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.co-item-details { flex: 1; min-width: 0; }
+.co-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.co-item-meta { font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+.co-qty-pill {
+  background: var(--surface-3);
+  color: var(--text-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+.co-item-price { font-size: 13.5px; font-weight: 700; color: var(--text-primary); flex-shrink: 0; }
+
+.co-divider {
+  border: none;
+  border-top: 1px dashed var(--glass-border);
+  margin: 12px 0;
+}
+.co-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+}
+.co-price-row .lbl { color: var(--text-secondary); }
+.co-price-row .val { color: var(--text-primary); font-weight: 500; }
+.co-price-row .free { color: #22c55e; font-weight: 700; }
+.co-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 2px;
+}
+.co-total-label { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.co-total-value {
+  font-size: 20px;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* CTA */
+.co-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  margin-top: 16px;
+  background: var(--gradient-primary);
+  color: #fff !important;
+  border: none;
+  border-radius: var(--btn-radius);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px var(--primary-glow);
+  transition: transform .18s, box-shadow .18s;
+}
+.co-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px var(--primary-glow);
+}
+.co-cta-btn:active { transform: translateY(0); }
+.co-cta-btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
+.co-spinner {
+  display: none;
+  width: 17px; height: 17px;
+  border: 2.5px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: coSpin .65s linear infinite;
+}
+@keyframes coSpin { to { transform: rotate(360deg); } }
+
+/* Trust row */
+.co-trust-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.co-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.co-trust-item i { color: #22c55e; font-size: 12px; }
+
+/* Back link */
+.co-back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-top: 12px;
+  transition: color .2s;
+}
+.co-back-link:hover { color: var(--primary); }
+
+/* Empty */
+.co-empty-items {
+  text-align: center;
+  padding: 24px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.co-empty-items i { font-size: 28px; display: block; margin-bottom: 6px; }
+
+/* Responsive */
+@media (max-width: 991.98px) { .co-summary-wrap { position: static; } }
+@media (max-width: 575.98px) {
+  .co-card { padding: 16px; }
+  .co-stepper .co-step-label { display: none; }
+}
+
+/* Animations */
+@keyframes coFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.co-a1 { animation: coFadeUp .4s ease both; }
+.co-a2 { animation: coFadeUp .4s ease .08s both; }
+.co-a3 { animation: coFadeUp .4s ease .16s both; }
+.co-a4 { animation: coFadeUp .4s ease .24s both; }
+.co-a5 { animation: coFadeUp .4s ease .32s both; }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="checkout-section py-5">
-    <div class="container" style="margin-top: 80px;">
-        <h1 class="mb-4 text-gradient animate-fade-up">Checkout</h1>
-        
-        <div class="row g-5">
-            <!-- Delivery Details Form -->
-            <div class="col-lg-7 animate-fade-up" style="animation-delay: 0.1s;">
-                <div class="glass-card p-4">
-                    <h3 class="h4 mb-4"><i class="bi bi-truck me-2 text-primary"></i>Delivery Details</h3>
-                    <form method="post" id="checkoutForm">
-                        {% csrf_token %}
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                                {{ form.first_name }}
-                                {% if form.first_name.errors %}
-                                    <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                                {{ form.last_name }}
-                                {% if form.last_name.errors %}
-                                    <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
-                                {{ form.email }}
-                                {% if form.email.errors %}
-                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
-                                {{ form.phone }}
-                                {% if form.phone.errors %}
-                                    <div class="text-danger small">{{ form.phone.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.address.id_for_label }}" class="form-label">Delivery Address</label>
-                                {{ form.address }}
-                                {% if form.address.errors %}
-                                    <div class="text-danger small">{{ form.address.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-4">
-                                <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
-                                {{ form.city }}
-                                {% if form.city.errors %}
-                                    <div class="text-danger small">{{ form.city.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.state.id_for_label }}" class="form-label">State</label>
-                                {{ form.state }}
-                                {% if form.state.errors %}
-                                    <div class="text-danger small">{{ form.state.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.zip_code.id_for_label }}" class="form-label">ZIP Code</label>
-                                {{ form.zip_code }}
-                                {% if form.zip_code.errors %}
-                                    <div class="text-danger small">{{ form.zip_code.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-12">
-                                <label for="{{ form.special_instructions.id_for_label }}" class="form-label">Special Instructions (Optional)</label>
-                                {{ form.special_instructions }}
-                                {% if form.special_instructions.errors %}
-                                    <div class="text-danger small">{{ form.special_instructions.errors.0 }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Order Summary Sidebar -->
-            <div class="col-lg-5 animate-fade-up" style="animation-delay: 0.2s;">
-                <div class="glass-card p-4 sticky-top" style="top: 100px; z-index: 10;">
-                    <h3 class="h4 mb-4"><i class="bi bi-receipt me-2 text-primary"></i>Order Summary</h3>
-                    
-                    <div class="checkout-items-list mb-4" style="max-height: 250px; overflow-y: auto;">
-                        {% for item in cart_items %}
-                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary pb-3">
-                            <div class="d-flex align-items-center">
-                                {% if item.menu_item.image %}
-                                    <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% else %}
-                                    <div class="rounded bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                                        <i class="bi bi-egg-fried"></i>
-                                    </div>
-                                {% endif %}
-                                <div>
-                                    <h6 class="mb-0 text-truncate" style="max-width: 180px;">{{ item.menu_item.name }}</h6>
-                                    <small class="text-muted">{{ item.quantity }} x Rs. {{ item.menu_item.price }}</small>
-                                </div>
-                            </div>
-                            <span class="fw-bold">Rs. {{ item.subtotal }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <!-- Pricing breakdown -->
-                    <div class="pricing-breakdown mb-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Subtotal</span>
-                            <span>Rs. {{ subtotal }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">GST & Restaurant Charges (5%)</span>
-                            <span>Rs. {{ tax }}</span>
-                        </div>
-                        <hr class="border-secondary">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="h5 mb-0">Total</span>
-                            <span class="h5 mb-0 text-gradient font-heading fw-bold">Rs. {{ total }}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Method Selection -->
-                    <div class="payment-method-section mb-4">
-                        <h4 class="h6 mb-3"><i class="bi bi-wallet2 me-2 text-primary"></i>Select Payment Method</h4>
-                        <div class="payment-choices">
-                            {% for radio in form.payment_method %}
-                            <div class="form-check custom-payment-check p-3 mb-2 rounded glass-card border border-secondary d-flex align-items-center">
-                                <div class="me-2">
-                                    {{ radio.tag }}
-                                </div>
-                                <label class="form-check-label w-100 cursor-pointer" for="{{ radio.id_for_label }}">
-                                    {% if radio.choice_value == 'cash' %}
-                                        <i class="bi bi-cash-stack me-2 text-success"></i> Cash on Delivery
-                                    {% elif radio.choice_value == 'card' %}
-                                        <i class="bi bi-credit-card me-2 text-info"></i> Credit / Debit Card
-                                    {% elif radio.choice_value == 'upi' %}
-                                        <i class="bi bi-phone me-2 text-warning"></i> UPI (PhonePe, GPay, Paytm)
-                                    {% endif %}
-                                </label>
-                            </div>
-                            {% endfor %}
-                            {% if form.payment_method.errors %}
-                                <div class="text-danger small">{{ form.payment_method.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Place Order Button -->
-                    <button type="submit" form="checkoutForm" class="btn btn-gradient-primary w-100 py-3 rounded-pill">
-                        <i class="bi bi-shield-check me-2"></i> Place Order
-                    </button>
-                </div>
-            </div>
-        </div>
+<div class="checkout-page">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="co-a1">
+      <nav class="co-breadcrumb mb-2" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'cart:view' %}">Cart</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        </ol>
+      </nav>
+      <h1 class="co-page-title">Secure Checkout</h1>
+      <p class="co-subtitle">
+        <i class="bi bi-lock-fill"></i>&nbsp;Your information is encrypted and processed securely.
+      </p>
     </div>
-</section>
+
+    <!-- Progress stepper -->
+    <div class="co-stepper co-a1">
+      <div class="co-step done">
+        <div class="co-step-num"><i class="bi bi-check-lg"></i></div>
+        <span class="co-step-label">Cart</span>
+      </div>
+      <div class="co-step-line"></div>
+      <div class="co-step active">
+        <div class="co-step-num">2</div>
+        <span class="co-step-label">Details</span>
+      </div>
+      <div class="co-step-line"></div>
+      <div class="co-step">
+        <div class="co-step-num">3</div>
+        <span class="co-step-label">Payment</span>
+      </div>
+      <div class="co-step-line"></div>
+      <div class="co-step">
+        <div class="co-step-num">4</div>
+        <span class="co-step-label">Confirmed</span>
+      </div>
+    </div>
+
+    <form method="post" id="checkoutForm" novalidate>
+      {% csrf_token %}
+      <div class="row g-3 align-items-start">
+
+        <!-- ════ LEFT — Form ════ -->
+        <div class="col-lg-7">
+
+          <!-- ① Customer Details -->
+          <div class="co-card co-a2">
+            <div class="co-section-head">
+              <div class="co-section-icon"><i class="bi bi-person-fill"></i></div>
+              <h2 class="co-section-title">Customer Details</h2>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="id_full_name" class="co-label">Full Name <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-person co-input-icon"></i>
+                  <input type="text" name="{{ form.full_name.html_name }}" id="id_full_name"
+                         class="co-input{% if form.full_name.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. John Doe"
+                         value="{{ form.full_name.value|default:'' }}" maxlength="300">
+                </div>
+                {% if form.full_name.errors %}<div class="co-error">{{ form.full_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label for="id_email" class="co-label">Email Address <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-envelope co-input-icon"></i>
+                  <input type="email" name="{{ form.email.html_name }}" id="id_email"
+                         class="co-input{% if form.email.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. john@email.com"
+                         value="{{ form.email.value|default:'' }}">
+                </div>
+                {% if form.email.errors %}<div class="co-error">{{ form.email.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label for="id_phone" class="co-label">Phone Number <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-telephone co-input-icon"></i>
+                  <input type="text" name="{{ form.phone.html_name }}" id="id_phone"
+                         class="co-input{% if form.phone.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. +91 98765 43210"
+                         value="{{ form.phone.value|default:'' }}" maxlength="20">
+                </div>
+                {% if form.phone.errors %}<div class="co-error">{{ form.phone.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- ② Delivery Address -->
+          <div class="co-card co-a3">
+            <div class="co-section-head">
+              <div class="co-section-icon"><i class="bi bi-geo-alt-fill"></i></div>
+              <h2 class="co-section-title">Delivery Address</h2>
+            </div>
+            <div class="row g-3">
+              <div class="col-sm-4">
+                <label for="id_house_number" class="co-label">House / Flat No. <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-house-door co-input-icon"></i>
+                  <input type="text" name="{{ form.house_number.html_name }}" id="id_house_number"
+                         class="co-input{% if form.house_number.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. 42-B"
+                         value="{{ form.house_number.value|default:'' }}" maxlength="50">
+                </div>
+                {% if form.house_number.errors %}<div class="co-error">{{ form.house_number.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-8">
+                <label for="id_street" class="co-label">Street / Area <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-signpost-2 co-input-icon"></i>
+                  <input type="text" name="{{ form.street.html_name }}" id="id_street"
+                         class="co-input{% if form.street.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. MG Road, Koramangala"
+                         value="{{ form.street.value|default:'' }}" maxlength="255">
+                </div>
+                {% if form.street.errors %}<div class="co-error">{{ form.street.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-5">
+                <label for="id_city" class="co-label">City <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-building co-input-icon"></i>
+                  <input type="text" name="{{ form.city.html_name }}" id="id_city"
+                         class="co-input{% if form.city.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. Bengaluru"
+                         value="{{ form.city.value|default:'' }}" maxlength="100">
+                </div>
+                {% if form.city.errors %}<div class="co-error">{{ form.city.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-4">
+                <label for="id_state" class="co-label">State <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-map co-input-icon"></i>
+                  <input type="text" name="{{ form.state.html_name }}" id="id_state"
+                         class="co-input{% if form.state.errors %} is-invalid{% endif %}"
+                         placeholder="e.g. Karnataka"
+                         value="{{ form.state.value|default:'' }}" maxlength="100">
+                </div>
+                {% if form.state.errors %}<div class="co-error">{{ form.state.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-sm-3">
+                <label for="id_pincode" class="co-label">Pincode <span style="color:#ef4444">*</span></label>
+                <div class="co-input-group">
+                  <i class="bi bi-mailbox co-input-icon"></i>
+                  <input type="text" name="{{ form.pincode.html_name }}" id="id_pincode"
+                         class="co-input{% if form.pincode.errors %} is-invalid{% endif %}"
+                         placeholder="560034"
+                         value="{{ form.pincode.value|default:'' }}" maxlength="10">
+                </div>
+                {% if form.pincode.errors %}<div class="co-error">{{ form.pincode.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ Order Notes -->
+          <div class="co-card co-a4">
+            <div class="co-section-head">
+              <div class="co-section-icon"><i class="bi bi-pencil-fill"></i></div>
+              <h2 class="co-section-title">Order Notes <span class="co-section-optional">(optional)</span></h2>
+            </div>
+            <label for="id_order_notes" class="co-label">Special Instructions</label>
+            <div class="co-input-group">
+              <i class="bi bi-chat-left-text co-input-icon top-aligned"></i>
+              <textarea name="{{ form.order_notes.html_name }}" id="id_order_notes"
+                        class="co-input{% if form.order_notes.errors %} is-invalid{% endif %}"
+                        placeholder="Allergies, preferred spice level, or any other requests…"
+                        rows="3">{{ form.order_notes.value|default:'' }}</textarea>
+            </div>
+            {% if form.order_notes.errors %}<div class="co-error">{{ form.order_notes.errors.0 }}</div>{% endif %}
+          </div>
+
+          <!-- ④ Payment Method -->
+          <div class="co-card co-a5">
+            <div class="co-section-head">
+              <div class="co-section-icon"><i class="bi bi-wallet2"></i></div>
+              <h2 class="co-section-title">Payment Method</h2>
+            </div>
+
+            <label class="co-pay-opt" id="coPayCash" for="radio_cash">
+              <input type="radio" name="payment_method" value="cash" id="radio_cash"
+                     {% if not form.payment_method.value or form.payment_method.value == 'cash' %}checked{% endif %}>
+              <span class="co-pay-icon cash"><i class="bi bi-cash-stack"></i></span>
+              <span class="co-pay-info">
+                <span class="co-pay-name">Cash on Delivery</span>
+                <span class="co-pay-desc">Pay when your food arrives</span>
+              </span>
+              <span class="co-pay-radio"></span>
+            </label>
+
+            <label class="co-pay-opt" id="coPayCard" for="radio_card">
+              <input type="radio" name="payment_method" value="card" id="radio_card"
+                     {% if form.payment_method.value == 'card' %}checked{% endif %}>
+              <span class="co-pay-icon card"><i class="bi bi-credit-card-2-front"></i></span>
+              <span class="co-pay-info">
+                <span class="co-pay-name">Credit / Debit Card</span>
+                <span class="co-pay-desc">Visa · Mastercard · RuPay</span>
+              </span>
+              <span class="co-pay-radio"></span>
+            </label>
+
+            <label class="co-pay-opt" id="coPayUpi" for="radio_upi">
+              <input type="radio" name="payment_method" value="upi" id="radio_upi"
+                     {% if form.payment_method.value == 'upi' %}checked{% endif %}>
+              <span class="co-pay-icon upi"><i class="bi bi-phone"></i></span>
+              <span class="co-pay-info">
+                <span class="co-pay-name">UPI</span>
+                <span class="co-pay-desc">PhonePe · Google Pay · Paytm</span>
+              </span>
+              <span class="co-pay-radio"></span>
+            </label>
+
+            {% if form.payment_method.errors %}
+              <div class="co-error mt-2">{{ form.payment_method.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div><!-- /col-lg-7 -->
+
+        <!-- ════ RIGHT — Order Summary ════ -->
+        <div class="col-lg-5">
+          <div class="co-summary-wrap co-a2">
+            <div class="co-summary-card">
+              <div class="co-summary-hdr">
+                <i class="bi bi-receipt-cutoff" style="color:#fff;font-size:16px;"></i>
+                <h2 class="co-summary-hdr-title">Order Summary</h2>
+                <span class="co-count-badge">{{ cart_items|length }} item{{ cart_items|length|pluralize }}</span>
+              </div>
+              <div class="co-summary-body">
+                <div class="co-items-list">
+                  {% for item in cart_items %}
+                  <div class="co-item-row">
+                    {% if item.menu_item.image %}
+                      <img src="{{ item.menu_item.image.url }}" alt="{{ item.menu_item.name }}" class="co-item-img">
+                    {% else %}
+                      <div class="co-item-img-ph"><i class="bi bi-egg-fried"></i></div>
+                    {% endif %}
+                    <div class="co-item-details">
+                      <div class="co-item-name">{{ item.menu_item.name }}</div>
+                      <div class="co-item-meta">
+                        <span class="co-qty-pill">×{{ item.quantity }}</span>
+                        ₹{{ item.menu_item.price }} each
+                      </div>
+                    </div>
+                    <div class="co-item-price">₹{{ item.subtotal }}</div>
+                  </div>
+                  {% empty %}
+                  <div class="co-empty-items"><i class="bi bi-bag-x"></i>No items in cart</div>
+                  {% endfor %}
+                </div>
+
+                <hr class="co-divider">
+
+                <div class="co-price-row">
+                  <span class="lbl">Subtotal</span>
+                  <span class="val">₹{{ subtotal }}</span>
+                </div>
+                <div class="co-price-row">
+                  <span class="lbl">GST &amp; Charges (5%)</span>
+                  <span class="val">₹{{ tax }}</span>
+                </div>
+                <div class="co-price-row">
+                  <span class="lbl"><i class="bi bi-bicycle me-1" style="color:#22c55e;"></i>Delivery</span>
+                  <span class="free">FREE</span>
+                </div>
+
+                <hr class="co-divider">
+
+                <div class="co-total-row">
+                  <span class="co-total-label">Total Payable</span>
+                  <span class="co-total-value">₹{{ total }}</span>
+                </div>
+
+                <button type="submit" form="checkoutForm" class="co-cta-btn" id="coPlaceBtn">
+                  <span class="co-spinner" id="coSpinner"></span>
+                  <i class="bi bi-shield-check" id="coIcon"></i>
+                  <span id="coText">Proceed to Payment</span>
+                </button>
+
+                <div class="co-trust-row">
+                  <span class="co-trust-item"><i class="bi bi-shield-lock-fill"></i> Secure</span>
+                  <span class="co-trust-item"><i class="bi bi-lock-fill"></i> Encrypted</span>
+                  <span class="co-trust-item"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                </div>
+
+                <a href="{% url 'cart:view' %}" class="co-back-link">
+                  <i class="bi bi-arrow-left"></i> Back to Cart
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  /* Payment selection */
+  const payOpts = document.querySelectorAll('.co-pay-opt');
+  const radios  = document.querySelectorAll('.co-pay-opt input[type="radio"]');
+  function syncPayUI() {
+    payOpts.forEach(o => o.classList.remove('is-selected'));
+    radios.forEach(r => { if (r.checked) r.closest('.co-pay-opt').classList.add('is-selected'); });
+  }
+  syncPayUI();
+  payOpts.forEach(opt => {
+    opt.addEventListener('click', () => { opt.querySelector('input[type="radio"]').checked = true; syncPayUI(); });
+  });
+
+  /* Submit spinner */
+  const form = document.getElementById('checkoutForm');
+  const btn  = document.getElementById('coPlaceBtn');
+  form.addEventListener('submit', function () {
+    if (!form.checkValidity()) return;
+    btn.disabled = true;
+    document.getElementById('coSpinner').style.display = 'block';
+    document.getElementById('coIcon').style.display    = 'none';
+    document.getElementById('coText').textContent      = 'Processing…';
+  });
+})();
+</script>
 {% endblock %}

@@ -17,7 +17,7 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--surface-2);
         transform: translateY(-50%);
         z-index: 1;
     }
@@ -50,8 +50,8 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--surface-2);
+        border: 2px solid var(--surface-3);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -62,15 +62,15 @@
     }
     
     .tracking-step.completed .tracking-icon-circle {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
+        background: var(--primary);
+        border-color: var(--primary);
         color: white;
         box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
     }
     
     .tracking-step.active .tracking-icon-circle {
-        background: var(--color-secondary);
-        border-color: var(--color-secondary);
+        background: var(--accent);
+        border-color: var(--accent);
         color: white;
         box-shadow: 0 0 20px rgba(255, 143, 175, 0.6);
         animation: pulse-glow 2s infinite;
@@ -87,7 +87,7 @@
     
     .tracking-step.active .tracking-label,
     .tracking-step.completed .tracking-label {
-        color: var(--text-color);
+        color: var(--text-primary);
     }
     
     @keyframes pulse-glow {
@@ -119,7 +119,7 @@
             bottom: 0;
             left: 25px;
             width: 4px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--surface-3);
             z-index: 1;
         }
         .tracking-step {
@@ -284,14 +284,30 @@
                     <p class="mb-0 text-muted" style="white-space: pre-line;">{{ order.delivery_address }}</p>
                 </div>
                 
-                <!-- Cancel Actions -->
-                {% if order.order_status == 'pending' or order.order_status == 'accepted' %}
+                <!-- Action Buttons -->
                 <div class="animate-fade-up" style="animation-delay: 0.4s;">
-                    <button type="button" class="btn btn-outline-danger w-100 rounded-pill py-2" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+
+                    <!-- Download Receipt (always available for non-cancelled) -->
+                    {% if order.order_status != 'cancelled' %}
+                    <a href="{% url 'orders:receipt' order.pk %}"
+                       class="btn btn-gradient-primary w-100 rounded-pill py-2 mb-3"
+                       id="downloadReceiptBtn">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Download Receipt
+                    </a>
+                    {% endif %}
+
+                    <!-- Cancel Order (only for pending/accepted) -->
+                    {% if order.order_status == 'pending' or order.order_status == 'accepted' %}
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 rounded-pill py-2"
+                            data-bs-toggle="modal"
+                            data-bs-target="#cancelOrderModal">
                         <i class="bi bi-x-circle me-2"></i>Cancel Order
                     </button>
+                    {% endif %}
+
                 </div>
-                {% endif %}
+
             </div>
         </div>
     </div>
