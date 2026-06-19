@@ -14,6 +14,7 @@ class Payment(models.Model):
 
     class PaymentStatus(models.TextChoices):
         PENDING = 'pending', 'Pending'
+        PENDING_VERIFICATION = 'pending_verification', 'Pending Verification'
         COMPLETED = 'completed', 'Completed'
         FAILED = 'failed', 'Failed'
         REFUNDED = 'refunded', 'Refunded'
@@ -35,7 +36,7 @@ class Payment(models.Model):
         default=uuid.uuid4,
     )
     payment_status = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=PaymentStatus.choices,
         default=PaymentStatus.PENDING,
     )
@@ -48,3 +49,34 @@ class Payment(models.Model):
 
     def __str__(self):
         return f'Payment #{self.pk} - ₹{self.amount} ({self.payment_status})'
+
+
+class UPISettings(models.Model):
+    """
+    Singleton model for admin-configurable UPI payment settings.
+    Only one record should exist (pk=1).
+    """
+    upi_id = models.CharField(
+        max_length=100,
+        help_text='Your UPI ID, e.g. dineflow@paytm',
+        default='dineflow@paytm',
+    )
+    merchant_name = models.CharField(
+        max_length=100,
+        help_text='Merchant name shown on UPI apps',
+        default='DineFlow',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'UPI Settings'
+        verbose_name_plural = 'UPI Settings'
+
+    def __str__(self):
+        return f'UPI Settings — {self.upi_id}'
+
+    @classmethod
+    def get_settings(cls):
+        """Return the singleton UPISettings record, creating it if absent."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

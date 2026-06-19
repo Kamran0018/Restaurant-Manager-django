@@ -54,7 +54,6 @@ def checkout_view(request):
     return render(request, 'orders/checkout.html', context)
 
 
-@transaction.atomic
 def _place_order(request, cart, cart_items, form):
     """Create order, order items, payment, and clear cart."""
     subtotal = cart.total_price
@@ -68,46 +67,54 @@ def _place_order(request, cart, cart_items, form):
         f"{form.cleaned_data['pincode']}"
     )
 
-    # Create order
-    order = Order.objects.create(
-        customer=request.user,
-        total_amount=total,
-        delivery_address=delivery_address,
-        special_instructions=form.cleaned_data.get('order_notes', ''),
-        order_status=Order.OrderStatus.PENDING,
-        payment_status=Order.PaymentStatus.PENDING,
-    )
+    payment_method = form.cleaned_data.get('payment_method', 'cash')
 
-    # Create order items
-    for cart_item in cart_items:
-        OrderItem.objects.create(
-            order=order,
-            menu_item=cart_item.menu_item,
-            quantity=cart_item.quantity,
-            price=cart_item.menu_item.price,
+    # ── UPI: save checkout data to session → redirect to live QR page ──────────
+    # Order is created only AFTER the user clicks "I've Paid" in the UPI view.
+    if payment_method == 'upi':
+        request.session['upi_checkout'] = {
+            'delivery_address': delivery_address,
+            'order_notes': form.cleaned_data.get('order_notes', ''),
+            'full_name': form.cleaned_data.get('full_name', ''),
+        }
+        return redirect('payments:upi_payment')
+
+    # ── Cash / Card: create order immediately ───────────────────────────────────
+    with transaction.atomic():
+        order = Order.objects.create(
+            customer=request.user,
+            total_amount=total,
+            delivery_address=delivery_address,
+            special_instructions=form.cleaned_data.get('order_notes', ''),
+            order_status=Order.OrderStatus.PENDING,
+            payment_status=Order.PaymentStatus.PENDING,
         )
 
-    # Create payment record
-    payment_method = form.cleaned_data.get('payment_method', 'cash')
-    payment = Payment.objects.create(
-        order=order,
-        amount=total,
-        payment_method=payment_method,
-        payment_status='completed' if payment_method == 'cash' else 'pending',
-    )
+        for cart_item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                menu_item=cart_item.menu_item,
+                quantity=cart_item.quantity,
+                price=cart_item.menu_item.price,
+            )
 
-    # If cash on delivery, mark payment as completed
-    if payment_method == 'cash':
-        order.payment_status = Order.PaymentStatus.PAID
-        order.order_status = Order.OrderStatus.ACCEPTED
-        order.save()
-        # Clear cart
-        cart.items.all().delete()
-        messages.success(request, f'Order #{order.pk} placed successfully!')
-        return redirect('orders:detail', order_id=order.pk)
-    else:
-        # For card/upi, redirect to the payment process view without clearing the cart yet
-        return redirect('payments:process', order_id=order.pk)
+        payment = Payment.objects.create(
+            order=order,
+            amount=total,
+            payment_method=payment_method,
+            payment_status='completed' if payment_method == 'cash' else 'pending',
+        )
+
+        if payment_method == 'cash':
+            order.payment_status = Order.PaymentStatus.PAID
+            order.order_status = Order.OrderStatus.ACCEPTED
+            order.save()
+            cart.items.all().delete()
+            messages.success(request, f'Order #{order.pk} placed successfully!')
+            return redirect('orders:detail', order_id=order.pk)
+
+    # Card payments → existing process view
+    return redirect('payments:process', order_id=order.pk)
 
 
 @login_required

@@ -21,12 +21,12 @@ from reportlab.platypus import (
     HRFlowable,
 )
 
-# ── Restaurant branding (edit freely) ────────────────────────────────────────
-RESTAURANT_NAME    = "Restro"
-RESTAURANT_TAGLINE = "✦  Premium Dining Experience  ✦"
+# ── DineFlow branding (edit freely) ────────────────────────────────────────
+RESTAURANT_NAME    = "DineFlow"
+RESTAURANT_TAGLINE = "✦  Smart Dining, Seamless Experience  ✦"
 RESTAURANT_ADDRESS = "123 Gourmet Street, Foodville, India – 560001"
 RESTAURANT_PHONE   = "+91 98765 43210"
-RESTAURANT_EMAIL   = "hello@restro.com"
+RESTAURANT_EMAIL   = "hello@dineflow.com"
 RESTAURANT_GST     = "GSTIN: 29ABCDE1234F1Z5"
 
 # ── Colour palette ────────────────────────────────────────────────────────────

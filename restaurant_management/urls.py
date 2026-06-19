@@ -25,6 +25,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Custom admin site header
-admin.site.site_header = 'Restro Admin'
-admin.site.site_title = 'Restro Admin Portal'
-admin.site.index_title = 'Welcome to Restro Management'
+admin.site.site_header = 'DineFlow Admin'
+admin.site.site_title = 'DineFlow Admin Portal'
+admin.site.index_title = 'Welcome to DineFlow Management'

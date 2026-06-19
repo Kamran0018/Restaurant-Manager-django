@@ -16,7 +16,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, f'Welcome to Restro, {user.first_name}! Your account has been created.')
+            messages.success(request, f'Welcome to DineFlow, {user.first_name}! Your account has been created.')
             return redirect('core:home')
         else:
             messages.error(request, 'Please correct the errors below.')

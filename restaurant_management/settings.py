@@ -1,5 +1,5 @@
 """
-Django settings for restaurant_management project.
+Django settings for DineFlow (restaurant_management) project.
 """
 import os
 from pathlib import Path
